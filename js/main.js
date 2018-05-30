@@ -88,10 +88,10 @@ var GameState = {
       
       //Events:
       //*Reach the target and won the game!
-      if (submarine.x == 1000 && submarine.y == 100) {
-          alert("Won!!!");
-          game.state.start('GameState');
-      }
+//      if (submarine.x == 1000 && submarine.y == 100) {
+//          alert("Won!!!");
+//          game.state.start('GameState');
+//      }
       
       //*Crash into obstacles and lost the game!
       //ps. I have to say, I hate this O(n) check, but it can be improved later by Cache or other algorithm
@@ -136,8 +136,22 @@ function submarine_move(x, y) {
     //to(properties, duration, ease, autoStart, delay, repeat, yoyo)
     submarine_movement.to({x: dx, y: dy}, 300);
     //submarine_movement.to({x: dx, y: dy}, 1000, Phaser.Easing.Bounce.Out);
+    
+    //*Callback Events!
+    submarine_movement.onComplete.add(function(){
+      //*Reach the target and won the game!    
+      if (submarine.x == 1000 && submarine.y == 100) {
+        alert("Won!!!");
+        game.state.start('GameState');
+      }
+      //*Crash into obstacles and lost the game!
+        
+    }, this);
+    
     submarine_movement.start()
+
 }
+
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
