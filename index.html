@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no" />
+		<title>Psulu_Demo00</title>
+	</head>
+
+	<body>
+        
+        <h1>Input Variable Areas</h1>
+        dx: <input type="text" name="dx" id="dx"><br>
+        dy: <input type="text" name="dy" id="dy"><br>
+        
+        <button onclick="submarine_move(document.getElementById('dx').value, document.getElementById('dy').value)">submarine_move</button>
+        
+        <script type="text/javascript" src="js/phaser.js"></script>		
+		<style>
+		  body {
+		    padding: 10px;
+		    margin: 5px;
+		    background: white;
+		  }
+		  </style>
+		
+        <!-- include the main game file -->
+		<script src="js/main.js"></script>
+	
+    </body>
+
+</html>

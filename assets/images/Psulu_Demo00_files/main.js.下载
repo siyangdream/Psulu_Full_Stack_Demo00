@@ -1,0 +1,49 @@
+//Global Variable (since it has to be interacted with html5, and it will be easier)
+var background;
+var submarine;
+var finish_line;
+
+
+//// STEP1 : INITIALIZATION ---
+
+//this game will have only 1 state
+var GameState = {
+  
+  //load the game assets before the game starts
+  preload: function() {
+    this.load.image('background', 'assets/images/water_background.jpg');
+    this.load.image('submarine', 'assets/images/submarine.png');
+    this.load.image('finish_line', 'assets/images/finish_line.png');
+  },
+  
+  //executed after everything is loaded
+  create: function() {
+    background = this.game.add.sprite(0, 0, 'background'); // two roles here : one is to add sprite, the other one is to assign reference
+      
+    submarine = this.game.add.sprite(100, 1000, 'submarine');
+    submarine.anchor.setTo(0.5, 0.5);
+    submarine.scale.setTo(-0.1, 0.1);
+    
+    finish_line = this.game.add.sprite(1000, 100, 'finish_line');
+    finish_line.anchor.setTo(0.5, 0.5);
+    finish_line.scale.setTo(0.3, 0.3);
+  
+  },
+  
+  //this is executed multiple times per second
+  update: function() {
+  },
+  
+};
+
+
+//// STEP2 : INTERACTION ---
+
+//Interaction with Front-End User
+
+
+//initiate the Phaser framework
+var game = new Phaser.Game(1100, 1100, Phaser.AUTO);
+
+game.state.add('GameState', GameState);
+game.state.start('GameState');
