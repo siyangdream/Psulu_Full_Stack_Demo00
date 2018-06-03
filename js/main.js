@@ -1,11 +1,12 @@
 //Global Variable (since it has to be interacted with html5, and it will be easier)
+//:basic properties
 var background;
 var submarine;
 var finish_line;
-
 var graphics;
 
-//Obstacles
+
+//:Obstacles
 //So far just manually copy data from map2 ***Remember to deal with y which should be 1 - y in this js phaser map***
 //Still planning on upload the map data in frontend method or backend method, but not a problem in this development stage
 var obs_105 = [[0.75, 0.25000000000000006], [0.8, 0.25000000000000006], [0.8, 0.30000000000000004], [0.75, 0.30000000000000004]];
@@ -24,12 +25,14 @@ var obs_78 = [[0.5, 0.4166666666666667], [0.55, 0.4166666666666667], [0.55, 0.46
 
 //Map is defined as 1100 * 1100
 //Then, scale would be 1000 and bias would be 100 in this case
-var scale = 1000;
-var bias = 100;
+var scale = 1000; //this variable is because of setting the inpus obstalce coordinates corresponding to how large the map you like
+var bias = 100; //this is because of making the canvas larger for having better view (scale + margin not used) * (scale + margin not used), and bias is the "margin not used"
 var m2pos = [obs_105, obs_110, obs_126, obs_20, obs_26, obs_31, obs_36, obs_39, obs_42, obs_54, obs_57, obs_77, obs_78];
-var map2_obstacles_object = [];
+var map2_obstacles_object = []; //store the objects that have transferred coordinates to the canvas
 
 
+//:Precision for detecting collision (cant be 0): 0.1 - slower but more precision, 1 - faster but less precision
+var precision = 1;
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////
@@ -63,7 +66,7 @@ var GameState = {
     finish_line.anchor.setTo(0.5, 0.5);
     finish_line.scale.setTo(0.3, 0.3);
     this.game.physics.arcade.enable(finish_line);
-    //finish_line.body.immovable = true;
+    
     
     //*Draw Obstacle Objects
     for (var i = 0; i < m2pos.length; ++i) {
@@ -77,46 +80,13 @@ var GameState = {
         graphics.drawPolygon(map2_obstacles_object[i].points); //it is possible that in future phaser.poly.points will be deprecated according to official documenthttps://www.w3schools.com/jsref/jsref_length_array.asp
     }
     graphics.endFill();
-    
-    
-    
-      
+
   },
   
   //this is executed multiple times per second
   update: function() {
       
-      //Events:
-      //*Reach the target and won the game!
-//      if (submarine.x == 1000 && submarine.y == 100) {
-//          alert("Won!!!");
-//          game.state.start('GameState');
-//      }
-      
-      //*Crash into obstacles and lost the game!
-      //ps. I have to say, I hate this O(n) check, but it can be improved later by Cache or other algorithm
-      for (var i = 0; i < m2pos.length; ++i) {
-          if (isInPolygon(submarine.x, submarine.y, m2pos[i]) == true) {
-              alert("Crashed and Failed!!!");
-              game.state.start('GameState');
-          }
-      }
-      
-      
-      
-      //Overlap event
-      
-      //reach the finish line
-      //this.game.physics.arcade.overlap(submarine, tmp, this.gameFailed);
-
-      
   },
-
-  //MARK: Helper functions for failing the game
-//  gameFailed: function(submarine, obstacles) {
-//      alert("Failed!!!")
-//      game.state.start('GameState');
-//  }
     
 };
 
@@ -144,10 +114,20 @@ function submarine_move(x, y) {
         alert("Won!!!");
         game.state.start('GameState');
       }
+        
       //*Crash into obstacles and lost the game!
+      for (var i = 0; i < map2_obstacles_object.length; ++i) {
+          if (map2_obstacles_object[i].contains(dx, dy)) {
+              alert("Crashed and Failed!!!");
+              game.state.start('GameState');
+              break;
+          }
+      }
+        
         
     }, this);
     
+    console.log([submarine.x, submarine.y])
     submarine_movement.start()
 
 }
@@ -159,44 +139,50 @@ function submarine_move(x, y) {
 
 //Inside the Polygon Judge --- Winding Number Algorithm
 /*
- * @parameter: px - submarine curr postion X
- *             py - submarine curr position Y
- *             poly - coordinates like [[x1, y1], [x2, y2], [x3, y3], ...]
+ * @parameter: checkPoint[0] - submarine curr postion X
+ *             checkPoint[1] - submarine curr position Y
+ *             polygonPoints - coordinates like [[x1, y1], [x2, y2], [x3, y3], ...]
  * @return: true - isInside the Polygon, false - Outside the Polygon
  */
-function isInPolygon(px, py, poly) {
-    var sum = 0
+function isInPolygon(checkPoint, polygonPoints) {  
+    var counter = 0;  
+    var i;  
+    var xinters;  
+    var p1, p2;  
+    var pointCount = polygonPoints.length;  
+    p1 = polygonPoints[0];  
+  
+    for (i = 1; i <= pointCount; i++) {  
+        p2 = polygonPoints[i % pointCount];  
+        if (  
+            checkPoint[0] > Math.min(p1[0], p2[0]) &&  
+            checkPoint[0] <= Math.max(p1[0], p2[0])  
+        ) {  
+            if (checkPoint[1] <= Math.max(p1[1], p2[1])) {  
+                if (p1[0] != p2[0]) {  
+                    xinters =  
+                        (checkPoint[0] - p1[0]) *  
+                            (p2[1] - p1[1]) /  
+                            (p2[0] - p1[0]) +  
+                        p1[1];  
+                    if (p1[1] == p2[1] || checkPoint[1] <= xinters) {  
+                        counter++;  
+                    }  
+                }  
+            }  
+        }  
+        p1 = p2;  
+    }  
+    if (counter % 2 == 0) {
+        return false;  
+    } else {  
+        return true;  
+    }  
+}  
 
-    for(var i = 0, l = poly.length, j = l - 1; i < l; j = i, i++) {
-      var sx = poly[i][0];
-      var sy = poly[i][1];
-      var tx = poly[j][0];
-      var ty = poly[j][1];
-
-      // If it is on the edge
-      if ( (sx - px) * (px - tx) >= 0 && (sy - py) * (py - ty) >= 0 && (px - sx) * (ty - sy) === (py - sy) * (tx - sx) ) {
-        return true;
-      }
-
-      // angle calculation
-      var angle = Math.atan2(sy - py, sx - px) - Math.atan2(ty - py, tx - px);
-
-      // angle should be in the valid -180 degree ~ 180 degree
-      if (angle >= Math.PI) {
-        angle = angle - Math.PI * 2;
-      } else if (angle <= -Math.PI) {
-        angle = angle + Math.PI * 2;
-      }
-
-      sum += angle;
-    }
-
-    // whether it is in the polygon
-    return Math.round(sum / Math.PI) === 0 ? false : true;
-}
 
 //////////////////////////////////////////////////////////////////////////////////////////
-//MARK: Entry Point
+//MARK: Entry Point of the Program
 
 //initiate the Phaser framework
 var game = new Phaser.Game(1100, 1100, Phaser.AUTO);
